@@ -1,9 +1,9 @@
 'use client';
-import React from 'react';
 import { ColorPicker } from '@/components/shared/ColorPicker';
-import { ShortcutsList } from '@/components/shared/ShortcutsList';
+import { PanelContainer, PanelFooter, PanelSection } from '@/components/shared/PanelBase';
 import { DiscreteSlider } from '@/components/ui/DiscreteSlider';
-import { PanelContainer, PanelSection, PanelFooter } from '@/components/shared/PanelBase';
+import { Tooltip } from '@/components/ui/Tooltip';
+import React from 'react';
 
 interface ToolsPanelProps {
   tool: 'fill' | 'erase' | 'picker';
@@ -12,13 +12,15 @@ interface ToolsPanelProps {
   setColor: (color: string) => void;
   brushSize: number;
   setBrushSize: (size: number) => void;
+  mirrorMode?: 'none' | 'vertical' | 'horizontal' | 'both';
+  setMirrorMode?: (mode: 'none' | 'vertical' | 'horizontal' | 'both') => void;
   recentColors: string[];
   addRecentColor: (color: string) => void;
   darkMode: boolean;
   onNewProject: () => void;
 }
 
-export const ToolsPanel = React.memo(function ToolsPanel({ tool, setTool, color, setColor, brushSize, setBrushSize, recentColors, addRecentColor, darkMode, onNewProject }: ToolsPanelProps) {
+export const ToolsPanel = React.memo(function ToolsPanel({ tool, setTool, color, setColor, brushSize, setBrushSize, mirrorMode = 'none', setMirrorMode, recentColors, addRecentColor, darkMode, onNewProject }: ToolsPanelProps) {
 
   const handlePickColor = async () => {
     if ('EyeDropper' in window) {
@@ -43,22 +45,26 @@ export const ToolsPanel = React.memo(function ToolsPanel({ tool, setTool, color,
       {/* Fill/Erase buttons */}
       <PanelSection border={false}>
         <div className="flex gap-2">
-          <button
-            onClick={() => setTool('fill')}
-            className={`flex-1 py-3 border text-[10px] font-bold uppercase tracking-widest transition-colors ${
-              tool === 'fill' ? 'bg-accent/10 border-accent text-accent' : 'bg-transparent border-border text-foreground opacity-40'
-            }`}
-          >
-            FILL
-          </button>
-          <button
-            onClick={() => setTool('erase')}
-            className={`flex-1 py-3 border text-[10px] font-bold uppercase tracking-widest transition-colors ${
-              tool === 'erase' ? 'bg-accent/10 border-accent text-accent' : 'bg-transparent border-border text-foreground opacity-40'
-            }`}
-          >
-            ERASE
-          </button>
+          <Tooltip content="Fill Tool" shortcut="F" className="flex-1">
+            <button
+              onClick={() => setTool('fill')}
+              className={`w-full py-3 border text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                tool === 'fill' ? 'bg-accent/10 border-accent text-accent' : 'bg-transparent border-border text-foreground opacity-40'
+              }`}
+            >
+              DRAW
+            </button>
+          </Tooltip>
+          <Tooltip content="Erase Tool" shortcut="E" className="flex-1">
+            <button
+              onClick={() => setTool('erase')}
+              className={`w-full py-3 border text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                tool === 'erase' ? 'bg-accent/10 border-accent text-accent' : 'bg-transparent border-border text-foreground opacity-40'
+              }`}
+            >
+              ERASE
+            </button>
+          </Tooltip>
         </div>
       </PanelSection>
 
@@ -99,7 +105,46 @@ export const ToolsPanel = React.memo(function ToolsPanel({ tool, setTool, color,
         />
       </PanelSection>
 
-      <ShortcutsList />
+      <PanelSection title="Symmetry">
+        <div className="flex gap-1 border border-border bg-panel/30 p-1">
+          <button
+            onClick={() => setMirrorMode?.('none')}
+            className={`flex-1 py-2 text-[10px] font-bold tracking-widest transition-colors ${
+              mirrorMode === 'none' ? 'bg-accent/20 text-accent border border-accent/30' : 'text-foreground opacity-50 hover:opacity-100'
+            }`}
+            title="No Symmetry"
+          >
+            NONE
+          </button>
+          <button
+            onClick={() => setMirrorMode?.('vertical')}
+            className={`flex-1 py-2 text-[10px] font-bold tracking-widest transition-colors ${
+              mirrorMode === 'vertical' ? 'bg-accent/20 text-accent border border-accent/30' : 'text-foreground opacity-50 hover:opacity-100'
+            }`}
+            title="Vertical Symmetry"
+          >
+            |
+          </button>
+          <button
+            onClick={() => setMirrorMode?.('horizontal')}
+            className={`flex-1 py-2 text-[10px] font-bold tracking-widest transition-colors ${
+              mirrorMode === 'horizontal' ? 'bg-accent/20 text-accent border border-accent/30' : 'text-foreground opacity-50 hover:opacity-100'
+            }`}
+            title="Horizontal Symmetry"
+          >
+            —
+          </button>
+          <button
+            onClick={() => setMirrorMode?.('both')}
+            className={`flex-1 py-2 text-[10px] font-bold tracking-widest transition-colors ${
+              mirrorMode === 'both' ? 'bg-accent/20 text-accent border border-accent/30' : 'text-foreground opacity-50 hover:opacity-100'
+            }`}
+            title="Quad Symmetry"
+          >
+            +
+          </button>
+        </div>
+      </PanelSection>
 
       <PanelFooter />
     </PanelContainer>

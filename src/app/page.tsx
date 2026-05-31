@@ -1,7 +1,7 @@
+import { HeroSection } from '@/components/landing/HeroSection';
+import { Navbar } from '@/components/landing/Navbar';
 import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
-import { Navbar } from '@/components/landing/Navbar';
-import { HeroSection } from '@/components/landing/HeroSection';
 
 // Dynamically import components below the fold to improve initial load and smoothness
 const FeatureGrid = dynamic(() => import('@/components/landing/FeatureGrid').then(mod => mod.FeatureGrid));

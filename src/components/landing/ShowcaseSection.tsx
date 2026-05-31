@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { DraggableShowcase } from "./DraggableShowcase";
 
 export function ShowcaseSection() {

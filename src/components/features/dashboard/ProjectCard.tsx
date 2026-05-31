@@ -1,7 +1,7 @@
 'use client';
-import React, { useState } from 'react';
-import { Star, Pencil, Trash2, FileText, Folder as FolderIcon } from 'lucide-react';
 import { DeleteModal } from '@/components/ui/DeleteModal';
+import { Folder as FolderIcon, Star, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface Project {
   id: string;
@@ -49,7 +49,7 @@ export function ProjectCard({
 
   return (
     <div
-      className={`relative group flex flex-col border transition-all duration-200 cursor-pointer bg-panel ${
+      className={`relative group flex flex-col border transition-all duration-300 cursor-pointer bg-panel rounded-xl overflow-hidden ${
         hovered ? 'border-foreground shadow-xl' : 'border-border'
       }`}
       onMouseEnter={() => setHovered(true)}
@@ -57,12 +57,12 @@ export function ProjectCard({
       onClick={() => onOpen(project)}
     >
       {/* Preview Image */}
-      <div className="aspect-square w-full overflow-hidden relative bg-background">
+      <div className="aspect-[4/3] w-full overflow-hidden relative bg-background border-b border-border">
         {project.preview ? (
           <img
             src={project.preview}
             alt={project.name}
-            className="w-full h-full object-contain [image-rendering:pixelated]"
+            className={`w-full h-full object-contain [image-rendering:pixelated] transition-transform duration-500 ${hovered ? 'scale-110' : 'scale-100'}`}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center opacity-10">
@@ -72,120 +72,97 @@ export function ProjectCard({
 
         {/* Draft badge */}
         {project.isDraft && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest bg-panel text-muted border border-border">
+          <div className="absolute top-3 left-3 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest bg-background/80 backdrop-blur-sm text-muted border border-border rounded">
             Draft
           </div>
         )}
 
-        {/* Hover Action Overlay */}
-        {hovered && (
-          <div
-            className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 backdrop-blur-sm"
-            onClick={(e) => e.stopPropagation()}
+        {/* Hover Action Overlay (Top Right) */}
+        <div 
+          className={`absolute top-3 right-3 flex gap-1.5 transition-opacity duration-200 ${hovered || isMoveMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Favourite */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavourite(project.id); }}
+            className={`w-7 h-7 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center border transition-colors hover:bg-yellow-400/10 ${
+              project.isFavourite ? 'text-yellow-500 border-yellow-500/50' : 'text-muted border-border'
+            }`}
+            title={project.isFavourite ? 'Remove from favourites' : 'Add to favourites'}
           >
-            {/* Favourite */}
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleFavourite(project.id); }}
-              className={`w-8 h-8 flex items-center justify-center border transition-colors hover:bg-yellow-400/10 ${
-                project.isFavourite ? 'text-yellow-500' : 'text-muted'
-              } border-border`}
-              title={project.isFavourite ? 'Remove from favourites' : 'Add to favourites'}
-            >
-              <Star className="w-3.5 h-3.5" fill={project.isFavourite ? 'currentColor' : 'none'} />
-            </button>
+            <Star className="w-3 h-3" fill={project.isFavourite ? 'currentColor' : 'none'} />
+          </button>
 
-            {/* Draft toggle */}
+          {/* Move to Folder */}
+          <div className="relative">
             <button
-              onClick={(e) => { e.stopPropagation(); onToggleDraft(project.id); }}
-              className={`w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black ${
-                project.isDraft ? 'text-foreground' : 'text-muted'
+              onClick={() => setIsMoveMenuOpen(!isMoveMenuOpen)}
+              className={`w-7 h-7 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center border transition-colors hover:bg-panel ${
+                isMoveMenuOpen ? 'border-accent text-accent' : 'border-border text-muted'
               }`}
-              title={project.isDraft ? 'Mark as complete' : 'Mark as draft'}
+              title="Move to folder"
             >
-              <FileText className="w-3.5 h-3.5" />
+              <FolderIcon className="w-3 h-3" />
             </button>
 
-            {/* Open / Edit */}
-            <button
-              onClick={(e) => { e.stopPropagation(); onOpen(project); }}
-              className="w-8 h-8 flex items-center justify-center border border-border text-foreground transition-colors hover:bg-accent hover:text-black"
-              title="Open project"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Delete */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteModalOpen(true);
-              }}
-              className="w-8 h-8 flex items-center justify-center border border-border text-red-500 transition-colors hover:bg-red-500/10"
-              title="Delete project"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Move to Folder */}
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setIsMoveMenuOpen(!isMoveMenuOpen)}
-                className={`w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black text-foreground ${
-                  isMoveMenuOpen ? 'bg-panel' : 'bg-transparent'
-                }`}
-                title="Move to folder"
-              >
-                <FolderIcon className="w-3.5 h-3.5" />
-              </button>
-
-              {isMoveMenuOpen && (
-                <div className="absolute bottom-full mb-2 right-0 border border-border bg-panel flex flex-col min-w-[140px] shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                  <div className="px-3 py-2 text-[8px] font-bold uppercase tracking-widest border-b border-border opacity-40">
-                    Move to...
-                  </div>
+            {isMoveMenuOpen && (
+              <div className="absolute top-full mt-1.5 right-0 border border-border bg-panel flex flex-col min-w-[140px] shadow-2xl z-50 rounded-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-2 text-[8px] font-bold uppercase tracking-widest border-b border-border opacity-40">
+                  Move to...
+                </div>
+                <button 
+                  onClick={() => { onMoveToFolder(project.id, null); setIsMoveMenuOpen(false); }}
+                  className={`px-3 py-2 text-left text-[9px] font-bold uppercase tracking-wider hover:bg-background flex items-center gap-2 ${
+                    !project.folderId ? 'text-accent' : 'text-foreground'
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full border ${!project.folderId ? 'border-accent bg-accent' : 'border-muted'}`} />
+                  Root
+                </button>
+                {folders.map(f => (
                   <button 
-                    onClick={() => { onMoveToFolder(project.id, null); setIsMoveMenuOpen(false); }}
-                    className={`px-3 py-2 text-left text-[9px] font-bold uppercase tracking-wider hover:bg-accent hover:text-black transition-colors flex items-center gap-2 ${
-                      !project.folderId ? 'text-accent' : 'text-foreground'
+                    key={f.id}
+                    onClick={() => { onMoveToFolder(project.id, f.id); setIsMoveMenuOpen(false); }}
+                    className={`px-3 py-2 text-left text-[9px] font-bold uppercase tracking-wider hover:bg-background flex items-center gap-2 ${
+                      project.folderId === f.id ? 'text-accent' : 'text-foreground'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full border ${!project.folderId ? 'border-accent bg-accent' : 'border-muted'}`} />
-                    Root Directory
+                    <span className={`w-1.5 h-1.5 rounded-full border ${project.folderId === f.id ? 'border-accent bg-accent' : 'border-muted'}`} />
+                    {f.name}
                   </button>
-                  {folders.map(f => (
-                    <button 
-                      key={f.id}
-                      onClick={() => { onMoveToFolder(project.id, f.id); setIsMoveMenuOpen(false); }}
-                      className={`px-3 py-2 text-left text-[9px] font-bold uppercase tracking-wider hover:bg-accent hover:text-black transition-colors flex items-center gap-2 ${
-                        project.folderId === f.id ? 'text-accent' : 'text-foreground'
-                      }`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full border ${project.folderId === f.id ? 'border-accent bg-accent' : 'border-muted'}`} />
-                      {f.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Delete */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDeleteModalOpen(true);
+            }}
+            className="w-7 h-7 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-border text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            title="Delete project"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
-      {/* Card Footer */}
-      <div className="px-3 py-2.5 border-t border-border relative">
-        <div className="text-[10px] font-bold uppercase tracking-wider truncate text-foreground">
-          {project.name || 'Untitled'}
+      {/* Card Info */}
+      <div className="px-4 py-3.5 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-bold text-foreground truncate">{project.name || 'Untitled'}</h3>
+          <span className="text-[10px] font-medium text-muted shrink-0">{project.gridSize}x{project.gridSize}</span>
         </div>
-        <div className="flex items-center justify-between mt-0.5">
-          <div className="text-[9px] uppercase tracking-widest opacity-40 text-foreground">
-            {project.date}
+
+        <div className="flex items-center justify-between text-[9px] text-muted font-medium">
+          <div className="flex items-center gap-1.5">
+            <span>{project.frames?.length || 1} frames</span>
+            <span>•</span>
+            <span>1 layer</span>
           </div>
-          {project.folderId && (
-            <div className="text-[8px] font-bold uppercase tracking-tighter opacity-30 flex items-center gap-1 text-foreground">
-              <FolderIcon className="w-2 h-2" />
-              {folders.find(f => f.id === project.folderId)?.name || 'Folder'}
-            </div>
-          )}
+          <span>{project.date}</span>
         </div>
       </div>
 

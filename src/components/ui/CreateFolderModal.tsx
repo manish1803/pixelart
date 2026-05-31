@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
 import { FolderPlus, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface CreateFolderModalProps {
   isOpen: boolean;

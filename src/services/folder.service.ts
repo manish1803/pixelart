@@ -29,7 +29,7 @@ export async function updateFolder(userId: string, id: string, name: string) {
   const doc = await Folder.findOneAndUpdate(
     { _id: id, userId },
     { $set: { name } },
-    { new: true }
+    { returnDocument: 'after' }
   );
   return doc ? serialize(doc) : null;
 }

@@ -1,20 +1,22 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import { Pipette, ChevronRight } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { hexToHsv, hexToRgb, hsvToHex, rgbToHex } from '@/lib/utils/color';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@radix-ui/react-collapsible';
-import { hexToHsv, hsvToHex, hexToRgb, rgbToHex } from '@/lib/utils/color';
+import { ChevronRight, Pipette } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ColorPickerProps {
   color: string;
   setColor: (color: string) => void;
   recentColors: string[];
   addRecentColor: (color: string) => void;
+  activePalette?: string[];
   darkMode: boolean;
   onPickColor?: () => void;
   isPickerActive?: boolean;
 }
 
-export function ColorPicker({ color, setColor, recentColors, addRecentColor, darkMode, onPickColor, isPickerActive }: ColorPickerProps) {
+export function ColorPicker({ color, setColor, recentColors, addRecentColor, activePalette = [], darkMode, onPickColor, isPickerActive }: ColorPickerProps) {
   const [hsv, setHsv] = useState(() => hexToHsv(color));
   const [rgb, setRgb] = useState(() => hexToRgb(color));
   const [format, setFormat] = useState<'RGB' | 'HEX'>('RGB');
@@ -101,15 +103,16 @@ export function ColorPicker({ color, setColor, recentColors, addRecentColor, dar
     <div className="border border-border p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground">COLOUR PICKER</div>
-        <button 
-          className={`p-1.5 rounded-sm transition-all border ${
-            isPickerActive ? 'bg-accent/10 border-accent text-accent' : 'border-transparent opacity-40 hover:opacity-100 hover:bg-panel text-foreground'
-          }`}
-          onClick={onPickColor}
-          title="Pick color from canvas"
-        >
-          <Pipette className="w-3.5 h-3.5" />
-        </button>
+        <Tooltip content="Pick color from canvas" shortcut="I">
+          <button 
+            className={`p-1.5 rounded-sm transition-all border ${
+              isPickerActive ? 'bg-accent/10 border-accent text-accent' : 'border-transparent opacity-40 hover:opacity-100 hover:bg-panel text-foreground'
+            }`}
+            onClick={onPickColor}
+          >
+            <Pipette className="w-3.5 h-3.5" />
+          </button>
+        </Tooltip>
       </div>
       
       {/* Saturation Box */}
@@ -141,7 +144,7 @@ export function ColorPicker({ color, setColor, recentColors, addRecentColor, dar
         <div 
           ref={hueBoxRef}
           className="h-3 flex-1 relative cursor-pointer" 
-          style={{ background: 'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)' }}
+          style={{ background: 'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #00f)' }}
           onPointerDown={handleHueDown}
         />
       </div>
@@ -198,6 +201,29 @@ export function ColorPicker({ color, setColor, recentColors, addRecentColor, dar
         )}
       </div>
 
+      {/* Active Palette Swatches */}
+      {activePalette && activePalette.length > 0 && (
+        <Collapsible defaultOpen={true}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full pt-2">
+            <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground">ACTIVE PALETTE</div>
+            <ChevronRight className="w-3 h-3 opacity-40 text-foreground" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <div className="grid grid-cols-6 gap-2">
+              {activePalette.map((c, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setColor(c)}
+                  className={`aspect-square border ${color.toLowerCase() === c.toLowerCase() ? 'border-accent border-2' : 'border-border'}`} 
+                  style={{ backgroundColor: c }} 
+                  title={c}
+                />
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
       {/* Recent Swatches */}
       <Collapsible defaultOpen={true}>
         <CollapsibleTrigger className="flex items-center justify-between w-full pt-2">
@@ -209,9 +235,10 @@ export function ColorPicker({ color, setColor, recentColors, addRecentColor, dar
             {recentColors.map((c, i) => (
               <button 
                 key={i} 
-                onClick={() => { setColor(c); addRecentColor(c); }}
-                className="aspect-square border border-border" 
+                onClick={() => setColor(c)}
+                className={`aspect-square border ${color.toLowerCase() === c.toLowerCase() ? 'border-accent border-2' : 'border-border'}`} 
                 style={{ backgroundColor: c }} 
+                title={c}
               />
             ))}
           </div>

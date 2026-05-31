@@ -1,13 +1,13 @@
+import { getProject } from '@/services/project.service';
 import { Metadata } from 'next';
 import EditorClient from './EditorClient';
-import { getProject } from '@/services/project.service';
 
 interface EditorPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({ searchParams }: EditorPageProps): Promise<Metadata> {
-  const id = searchParams.id;
+  const { id } = await searchParams;
   
   if (typeof id === 'string') {
     const project = await getProject(id);

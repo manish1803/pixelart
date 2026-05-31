@@ -1,5 +1,5 @@
 'use client';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 
 interface CustomNumberInputProps {
   value: string | number;
@@ -31,7 +31,7 @@ export function CustomNumberInput({ value, onIncrement, onDecrement, label, vari
     <div className="flex items-center gap-1">
       <button 
         onClick={onDecrement}
-        className="w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black text-muted"
+        className="w-8 h-8 flex items-center justify-center border border-border hover-accent text-muted"
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
@@ -40,7 +40,7 @@ export function CustomNumberInput({ value, onIncrement, onDecrement, label, vari
       </div>
       <button 
         onClick={onIncrement}
-        className="w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black text-muted"
+        className="w-8 h-8 flex items-center justify-center border border-border hover-accent text-muted"
       >
         <ChevronRight className="w-4 h-4" />
       </button>

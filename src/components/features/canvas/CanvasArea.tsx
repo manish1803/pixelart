@@ -1,7 +1,7 @@
 'use client';
-import React, { useRef, useEffect, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
 import { CustomNumberInput } from '@/components/ui/CustomNumberInput';
+import { ChevronRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface CanvasAreaProps {
   projectName: string;
@@ -15,12 +15,18 @@ interface CanvasAreaProps {
   color: string;
   setColor: (color: string) => void;
   brushSize: number;
+  mirrorMode?: 'none' | 'vertical' | 'horizontal' | 'both';
+  onionSkin?: boolean;
+  previousFramePixels?: { [key: string]: string };
   pixels: { [key: string]: string };
   setPixels: (pixels: { [key: string]: string }) => void;
-  mode: 'draw' | 'animate';
   darkMode: boolean;
   onSave: () => void;
   saving: boolean;
+  zoom: number;
+  setZoom: React.Dispatch<React.SetStateAction<number>>;
+  pan: { x: number; y: number };
+  setPan: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
 }
 
 export const CanvasArea = React.memo(function CanvasArea({
@@ -35,15 +41,26 @@ export const CanvasArea = React.memo(function CanvasArea({
   color,
   setColor,
   brushSize,
+  mirrorMode = 'none',
+  onionSkin = false,
+  previousFramePixels,
   pixels,
   setPixels,
-  mode,
   darkMode,
   onSave,
   saving,
+  zoom,
+  setZoom,
+  pan,
+  setPan,
 }: CanvasAreaProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  
+  // Panning UI State
+  const [isPanning, setIsPanning] = useState(false);
+  const [spacePressed, setSpacePressed] = useState(false);
+  const [lastPanPos, setLastPanPos] = useState({ x: 0, y: 0 });
   const [exportOpen, setExportOpen] = useState(false);
 
   const canvasSize = 600;
@@ -52,7 +69,31 @@ export const CanvasArea = React.memo(function CanvasArea({
 
   useEffect(() => {
     drawCanvas();
-  }, [pixels, gridSize, darkMode, toyMode]);
+  }, [pixels, gridSize, darkMode, toyMode, mirrorMode, onionSkin, previousFramePixels]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ' ' && !spacePressed) {
+        // Only prevent default if we are not in an input
+        if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setSpacePressed(true);
+        }
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ') {
+        setSpacePressed(false);
+        setIsPanning(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [spacePressed]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -63,6 +104,17 @@ export const CanvasArea = React.memo(function CanvasArea({
     ctx.clearRect(0, 0, canvasSize, canvasSize);
     ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+    // Draw Onion Skin (Previous Frame)
+    if (onionSkin && previousFramePixels) {
+      ctx.globalAlpha = 0.3;
+      Object.entries(previousFramePixels).forEach(([key, color]) => {
+        const [x, y] = key.split(',').map(Number);
+        ctx.fillStyle = color;
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      });
+      ctx.globalAlpha = 1.0;
+    }
 
     if (toyMode) {
       const defaultColor = darkMode ? '#1a1a1a' : '#ffffff';
@@ -128,6 +180,57 @@ export const CanvasArea = React.memo(function CanvasArea({
       ctx.lineTo(canvasSize, pos);
       ctx.stroke();
     }
+
+    // Draw Symmetry Guides
+    if (mirrorMode !== 'none') {
+      ctx.strokeStyle = darkMode ? 'rgba(0, 255, 255, 0.4)' : 'rgba(0, 150, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+
+      if (mirrorMode === 'vertical' || mirrorMode === 'both') {
+        const center = (gridSize / 2) * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(center, 0);
+        ctx.lineTo(center, canvasSize);
+        ctx.stroke();
+      }
+
+      if (mirrorMode === 'horizontal' || mirrorMode === 'both') {
+        const center = (gridSize / 2) * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(0, center);
+        ctx.lineTo(canvasSize, center);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    // Zoom centered on pointer would be nice, but simple zoom is MVP
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setZoom(z => Math.max(0.5, Math.min(10, z * delta)));
+  };
+
+  const handleMouseDownWrapper = (e: React.MouseEvent) => {
+    if (spacePressed) {
+      e.stopPropagation();
+      setIsPanning(true);
+      setLastPanPos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseMoveWrapper = (e: React.MouseEvent) => {
+    if (isPanning) {
+      const dx = e.clientX - lastPanPos.x;
+      const dy = e.clientY - lastPanPos.y;
+      setPan(p => ({ x: p.x + dx, y: p.y + dy }));
+      setLastPanPos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUpWrapper = () => {
+    setIsPanning(false);
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -152,12 +255,27 @@ export const CanvasArea = React.memo(function CanvasArea({
       for (let dy = start; dy <= end; dy++) {
         const nx = x + dx;
         const ny = y + dy;
-        if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
-          if (tool === 'erase') {
-            delete newPixels[`${nx},${ny}`];
-          } else {
-            newPixels[`${nx},${ny}`] = color;
+        
+        const applyPixel = (px: number, py: number) => {
+          if (px >= 0 && px < gridSize && py >= 0 && py < gridSize) {
+            if (tool === 'erase') {
+              delete newPixels[`${px},${py}`];
+            } else {
+              newPixels[`${px},${py}`] = color;
+            }
           }
+        };
+
+        applyPixel(nx, ny);
+
+        if (mirrorMode === 'vertical' || mirrorMode === 'both') {
+          applyPixel(gridSize - 1 - nx, ny);
+        }
+        if (mirrorMode === 'horizontal' || mirrorMode === 'both') {
+          applyPixel(nx, gridSize - 1 - ny);
+        }
+        if (mirrorMode === 'both') {
+          applyPixel(gridSize - 1 - nx, gridSize - 1 - ny);
         }
       }
     }
@@ -217,21 +335,44 @@ export const CanvasArea = React.memo(function CanvasArea({
     <div className="flex-1 h-full overflow-hidden flex flex-col p-8 bg-background transition-colors duration-300">
 
 
-      <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+      <div 
+        className="flex-1 min-h-0 flex items-center justify-center overflow-hidden relative"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDownWrapper}
+        onMouseMove={handleMouseMoveWrapper}
+        onMouseUp={handleMouseUpWrapper}
+        onMouseLeave={handleMouseUpWrapper}
+        style={{ cursor: spacePressed ? (isPanning ? 'grabbing' : 'grab') : 'default' }}
+      >
         <canvas
           ref={canvasRef}
           width={canvasSize}
           height={canvasSize}
           onMouseDown={(e) => {
-            setIsDrawing(true);
-            handleCanvasClick(e);
+            if (!spacePressed) {
+              setIsDrawing(true);
+              handleCanvasClick(e);
+            }
           }}
           onMouseUp={() => setIsDrawing(false)}
           onMouseLeave={() => setIsDrawing(false)}
           onMouseMove={handleCanvasMove}
           className="border border-border shadow-2xl max-w-full max-h-full object-contain [image-rendering:pixelated]"
-          style={{ cursor: getCursor(), width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }}
+          style={{ 
+            cursor: spacePressed ? 'inherit' : getCursor(),
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: 'center',
+            width: 'auto', 
+            height: 'auto', 
+            maxWidth: '100%', 
+            maxHeight: '100%' 
+          }}
         />
+
+        {/* Zoom Indicator */}
+        <div className="absolute bottom-4 right-4 bg-panel/80 backdrop-blur-sm border border-border px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest text-foreground shadow-lg pointer-events-none">
+          {Math.round(zoom * 100)}%
+        </div>
       </div>
 
       <div className="flex items-center justify-between mt-8 shrink-0">
@@ -270,7 +411,7 @@ export const CanvasArea = React.memo(function CanvasArea({
 
           <button
             onClick={handleClear}
-            className="border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-accent hover:text-black text-foreground bg-transparent"
+            className="border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider hover-accent text-foreground bg-transparent"
           >
             Clear
           </button>
@@ -280,7 +421,7 @@ export const CanvasArea = React.memo(function CanvasArea({
           <div className="relative">
             <button
               onClick={() => setExportOpen(!exportOpen)}
-              className={`border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-accent hover:text-black flex items-center gap-2 text-foreground ${
+              className={`border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider hover-accent flex items-center gap-2 text-foreground ${
                 exportOpen ? 'bg-panel' : 'bg-transparent'
               }`}
             >
@@ -291,10 +432,10 @@ export const CanvasArea = React.memo(function CanvasArea({
             
             {exportOpen && (
               <div className="absolute bottom-full mb-2 right-0 border border-border bg-panel flex flex-col min-w-[120px] shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-1 duration-150">
-                <button onClick={handleExportPNG} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider hover:bg-accent hover:text-black transition-colors border-b border-border text-foreground">
+                <button onClick={handleExportPNG} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider hover-accent border-b border-border text-foreground">
                   Export PNG
                 </button>
-                <button onClick={handleExportSVG} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider hover:bg-accent hover:text-black transition-colors text-foreground">
+                <button onClick={handleExportSVG} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider hover-accent text-foreground">
                   Export SVG
                 </button>
               </div>
@@ -304,7 +445,7 @@ export const CanvasArea = React.memo(function CanvasArea({
           <button
             onClick={onSave}
             disabled={saving}
-            className="border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-accent hover:text-black text-foreground bg-panel/30 flex items-center gap-2 group disabled:opacity-50"
+            className="border border-border px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider hover-accent text-foreground bg-panel/30 flex items-center gap-2 group disabled:opacity-50"
           >
             <div className={`w-1.5 h-1.5 rounded-full ${saving ? 'bg-accent animate-pulse' : 'bg-foreground group-hover:bg-accent'}`} />
             <span>{saving ? 'Saving...' : 'Save Project'}</span>

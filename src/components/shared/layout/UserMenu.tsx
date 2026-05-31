@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { ChevronDown, LogOut } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UserMenuProps {
   onSignIn: () => void;

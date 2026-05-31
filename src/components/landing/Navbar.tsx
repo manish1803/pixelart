@@ -1,10 +1,9 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
 import { Logo } from "../shared/Logo";
 import { UserMenu } from "../shared/layout/UserMenu";
 
@@ -90,7 +89,7 @@ export function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link href="/projects" className="text-xs font-bold text-text-muted hover:text-foreground transition-colors">
+                  <Link href="/dashboard" className="text-xs font-bold text-text-muted hover:text-foreground transition-colors">
                     Dashboard
                   </Link>
                   <UserMenu 

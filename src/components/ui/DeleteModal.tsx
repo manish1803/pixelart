@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface DeleteModalProps {
   isOpen: boolean;
@@ -33,7 +33,7 @@ export function DeleteModal({ isOpen, onClose, onConfirm, projectName, darkMode 
 
       {/* Modal Content */}
       <div 
-        className="relative w-full max-w-sm border border-border bg-background shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+        className="relative w-full max-w-md border border-border bg-background shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

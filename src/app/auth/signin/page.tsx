@@ -1,9 +1,9 @@
 'use client';
 
+import { Github } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { Github } from 'lucide-react';
 
 function SignInContent() {
   const searchParams = useSearchParams();
@@ -11,25 +11,25 @@ function SignInContent() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center"
-      style={{ fontFamily: "'Geist Mono', monospace", backgroundColor: '#0B0B0B' }}
+      className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground"
+      style={{ fontFamily: "'Geist Mono', monospace" }}
     >
       {/* Logo */}
       <div className="flex items-center gap-3 mb-12">
         <div className="grid grid-cols-2 gap-0.5">
-          <div className="w-3 h-3 border" style={{ borderColor: '#333' }} />
+          <div className="w-3 h-3 border border-border" />
           <div className="w-3 h-3 bg-[#00FF41]" />
-          <div className="w-3 h-3 border" style={{ borderColor: '#333' }} />
-          <div className="w-3 h-3 border" style={{ borderColor: '#333' }} />
+          <div className="w-3 h-3 border border-border" />
+          <div className="w-3 h-3 border border-border" />
         </div>
-        <span className="text-2xl font-bold tracking-tighter text-[#EAEAEA]">pixel</span>
+        <span className="text-2xl font-bold tracking-tighter text-foreground">pixel</span>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-sm border p-8 flex flex-col gap-6" style={{ borderColor: '#1F1F1F', backgroundColor: '#111' }}>
+      <div className="w-full max-w-sm border border-border p-8 flex flex-col gap-6 bg-panel">
         <div>
-          <h1 className="text-sm font-bold uppercase tracking-[0.2em] text-[#EAEAEA]">Sign In</h1>
-          <p className="text-[10px] font-bold uppercase tracking-widest opacity-40 mt-1 text-[#EAEAEA]">
+          <h1 className="text-sm font-bold uppercase tracking-[0.2em] text-foreground">Sign In</h1>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted mt-1">
             Sync your projects across devices
           </p>
         </div>
@@ -38,8 +38,7 @@ function SignInContent() {
           {/* GitHub */}
           <button
             onClick={() => signIn('github', { callbackUrl })}
-            className="w-full flex items-center gap-3 h-11 px-4 border transition-colors hover:border-[#EAEAEA] hover:bg-white/5"
-            style={{ borderColor: '#1F1F1F', color: '#EAEAEA' }}
+            className="w-full flex items-center gap-3 h-11 px-4 border border-border transition-colors hover:border-foreground hover:bg-foreground/5 text-foreground"
           >
             <Github className="w-4 h-4" />
             <span className="text-[10px] font-bold uppercase tracking-widest">Continue with GitHub</span>
@@ -48,8 +47,7 @@ function SignInContent() {
           {/* Google */}
           <button
             onClick={() => signIn('google', { callbackUrl })}
-            className="w-full flex items-center gap-3 h-11 px-4 border transition-colors hover:border-[#EAEAEA] hover:bg-white/5"
-            style={{ borderColor: '#1F1F1F', color: '#EAEAEA' }}
+            className="w-full flex items-center gap-3 h-11 px-4 border border-border transition-colors hover:border-foreground hover:bg-foreground/5 text-foreground"
           >
             {/* Google G icon */}
             <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -63,13 +61,13 @@ function SignInContent() {
         </div>
 
         {/* Divider */}
-        <div className="border-t pt-4" style={{ borderColor: '#1F1F1F' }}>
-          <p className="text-[9px] font-bold uppercase tracking-widest opacity-30 text-[#EAEAEA] text-center">
+        <div className="border-t border-border pt-4">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted text-center">
             Guest mode — draw without signing in
           </p>
           <a
             href="/"
-            className="block mt-3 w-full text-center text-[9px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity text-[#EAEAEA]"
+            className="block mt-3 w-full text-center text-[9px] font-bold uppercase tracking-widest text-muted hover:text-foreground transition-colors"
           >
             ← Back to Dashboard
           </a>

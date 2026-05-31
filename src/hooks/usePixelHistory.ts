@@ -1,46 +1,52 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
-export function usePixelHistory(initialState: { [key: string]: string } = {}) {
-  const [pixels, setPixels] = useState<{ [key: string]: string }>(initialState);
-  const [history, setHistory] = useState<{ [key: string]: string }[]>([initialState]);
+export interface Frame {
+  id: number;
+  pixels: { [key: string]: string };
+}
+
+export function usePixelHistory(initialState: Frame[] = [{ id: 1, pixels: {} }]) {
+  const [frames, setFrames] = useState<Frame[]>(initialState);
+  const [history, setHistory] = useState<Frame[][]>([initialState]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const updatePixelsWithHistory = useCallback((newPixels: { [key: string]: string }) => {
+  const updateFramesWithHistory = useCallback((newFrames: Frame[]) => {
     setHistory(prevHistory => {
       const newHistory = prevHistory.slice(0, historyIndex + 1);
-      newHistory.push(newPixels);
+      newHistory.push(newFrames);
       return newHistory;
     });
     setHistoryIndex(prevIndex => prevIndex + 1);
-    setPixels(newPixels);
+    setFrames(newFrames);
   }, [historyIndex]);
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
       setHistoryIndex(i => i - 1);
-      setPixels(history[historyIndex - 1]);
+      setFrames(history[historyIndex - 1]);
     }
   }, [history, historyIndex]);
 
   const redo = useCallback(() => {
     if (historyIndex < history.length - 1) {
       setHistoryIndex(i => i + 1);
-      setPixels(history[historyIndex + 1]);
+      setFrames(history[historyIndex + 1]);
     }
   }, [history, historyIndex]);
 
   const clearHistory = useCallback(() => {
-    setPixels({});
-    setHistory([{}]);
+    const emptyState = [{ id: 1, pixels: {} }];
+    setFrames(emptyState);
+    setHistory([emptyState]);
     setHistoryIndex(0);
   }, []);
 
   return {
-    pixels,
-    setPixels,
+    frames,
+    setFrames: updateFramesWithHistory,
+    setFramesWithoutHistory: setFrames,
     history,
     historyIndex,
-    updatePixelsWithHistory,
     undo,
     redo,
     clearHistory

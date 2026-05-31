@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth/auth';
-import { getProjectsByUser, createProject } from '@/services/project.service';
 import { CreateProjectSchema } from '@/lib/validations/project';
+import { createProject, getProjectsByUser } from '@/services/project.service';
+import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+export const dynamic = 'force-dynamic';
 
 function unauthorized() {
   return NextResponse.json(
@@ -13,12 +13,15 @@ function unauthorized() {
 }
 
 // GET /api/projects — list all projects for the authenticated user
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
   try {
-    const projects = await getProjectsByUser(session.user.id);
+    const { searchParams } = new URL(req.url);
+    const trash = searchParams.get('trash') === 'true';
+    
+    const projects = await getProjectsByUser(session.user.id, trash);
     return NextResponse.json({ success: true, data: projects });
   } catch (err) {
     console.error('[GET /api/projects]', err);

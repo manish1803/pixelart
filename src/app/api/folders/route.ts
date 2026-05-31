@@ -1,7 +1,7 @@
+import { auth } from '@/lib/auth/auth';
+import { createFolder, getFoldersByUser } from '@/services/folder.service';
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
-import { auth } from '@/lib/auth/auth';
-import { getFoldersByUser, createFolder } from '@/services/folder.service';
 
 function unauthorized() {
   return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });

@@ -1,10 +1,10 @@
 'use client';
-import React from 'react';
 import { ColorPicker } from '@/components/shared/ColorPicker';
+import { PanelContainer, PanelFooter, PanelSection } from '@/components/shared/PanelBase';
 import { ShortcutsList } from '@/components/shared/ShortcutsList';
 import { CustomNumberInput } from '@/components/ui/CustomNumberInput';
 import { DiscreteSlider } from '@/components/ui/DiscreteSlider';
-import { PanelContainer, PanelSection, PanelFooter } from '@/components/shared/PanelBase';
+import React from 'react';
 
 interface AnimationLeftPanelProps {
   tool: 'fill' | 'erase' | 'picker';

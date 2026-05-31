@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { FadeInSection } from "../shared/FadeInSection";
 
 export function RoadmapSection() {

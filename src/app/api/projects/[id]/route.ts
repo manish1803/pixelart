@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-export const dynamic = 'force-dynamic';
 import { auth } from '@/lib/auth/auth';
+import { ToggleFieldSchema, UpdateProjectSchema } from '@/lib/validations/project';
 import {
-  updateProject,
-  deleteProject,
-  toggleProjectField,
-  getProjectById,
+    deleteProject,
+    getProjectById,
+    toggleProjectField,
+    updateProject,
 } from '@/services/project.service';
-import { UpdateProjectSchema, ToggleFieldSchema } from '@/lib/validations/project';
+import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+export const dynamic = 'force-dynamic';
 
 function unauthorized() {
   return NextResponse.json(
@@ -24,15 +24,17 @@ function notFound() {
   );
 }
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 // GET /api/projects/[id] — fetch a single project
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
+  const { id } = await params;
+
   try {
-    const project = await getProjectById(session.user.id, params.id);
+    const project = await getProjectById(session.user.id, id);
     if (!project) return notFound();
     return NextResponse.json({ success: true, data: project });
   } catch (err) {
@@ -49,10 +51,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
+  const { id } = await params;
+
   try {
     const body = await req.json();
     const validated = UpdateProjectSchema.parse(body);
-    const updated = await updateProject(session.user.id, params.id, validated);
+    const updated = await updateProject(session.user.id, id, validated);
     if (!updated) return notFound();
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
@@ -75,8 +79,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
+  const { id } = await params;
+
   try {
-    const deleted = await deleteProject(session.user.id, params.id);
+    const deleted = await deleteProject(session.user.id, id);
     if (!deleted) return notFound();
     return NextResponse.json({ success: true, data: null });
   } catch (err) {
@@ -93,10 +99,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
+  const { id } = await params;
+
   try {
     const body = await req.json();
     const { field } = ToggleFieldSchema.parse(body);
-    const updated = await toggleProjectField(session.user.id, params.id, field);
+    const updated = await toggleProjectField(session.user.id, id, field);
     if (!updated) return notFound();
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {

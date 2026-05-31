@@ -25,7 +25,7 @@ export function DiscreteSlider({ value, min, max, onChange }: DiscreteSliderProp
     <div className="flex items-center gap-1">
       <button 
         onClick={handleDecrement}
-        className="w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black text-muted"
+        className="w-8 h-8 flex items-center justify-center border border-border hover-accent text-muted"
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
@@ -54,7 +54,7 @@ export function DiscreteSlider({ value, min, max, onChange }: DiscreteSliderProp
 
       <button 
         onClick={handleIncrement}
-        className="w-8 h-8 flex items-center justify-center border border-border transition-colors hover:bg-accent hover:text-black text-muted"
+        className="w-8 h-8 flex items-center justify-center border border-border hover-accent text-muted"
       >
         <ChevronRight className="w-4 h-4" />
       </button>

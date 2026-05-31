@@ -1,12 +1,11 @@
 "use client";
-import React from "react";
-import { 
-    IconCloud, 
-    IconBolt, 
-    IconStack2, 
-    IconDeviceLaptop, 
-    IconArtboard, 
-    IconDownload 
+import {
+    IconArtboard,
+    IconBolt,
+    IconCloud,
+    IconDeviceLaptop,
+    IconDownload,
+    IconStack2
 } from "@tabler/icons-react";
 import { FadeInSection } from "../shared/FadeInSection";
 
